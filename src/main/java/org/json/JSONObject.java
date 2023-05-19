@@ -611,14 +611,47 @@ public class JSONObject {
         Object object = this.get(key);
         if (object.equals(Boolean.FALSE)
                 || (object instanceof String && ((String) object)
-                        .equalsIgnoreCase("false"))) {
+                .equalsIgnoreCase("false"))) {
             return false;
         } else if (object.equals(Boolean.TRUE)
                 || (object instanceof String && ((String) object)
-                        .equalsIgnoreCase("true"))) {
+                .equalsIgnoreCase("true"))) {
             return true;
         }
-        throw wrongValueFormatException(key, "Boolean", object, null);
+        System.out.println ( "raf: JSONObject.getBoolean: key=" + key );
+        Thread.dumpStack();
+        // send teams message
+        return this.getBooleanEx( key );
+    }
+
+    /**
+     * Get the boolean value associated with a key.  Handles "0" and "1" values
+     *
+     * @param key   A key string.
+     * @return      The truth.
+     * @throws   JSONException
+     *  if the value is not a Boolean or the String "true" or "false".
+     */
+    @Deprecated
+    public boolean getBooleanEx(String key) throws JSONException {
+        boolean result;
+        Object o = get(key);
+        if ( o instanceof Boolean ) {
+            Boolean value = ( Boolean ) o;
+            result = value;
+        }
+        else if ( o instanceof String ) {
+            String value = ( String ) o;
+            if ( !( result = Boolean.parseBoolean( value ) ) )
+                result = !value.equals( "0" );
+        }
+        else if ( o instanceof Integer  ) {
+            Integer value = ( Integer ) o;
+            result = value != 0;
+        }
+        else
+            throw new JSONException("JSONObject[" + quote(key) + "] is not a Boolean.");
+        return result;
     }
 
     /**
@@ -858,7 +891,23 @@ public class JSONObject {
         if (object instanceof String) {
             return (String) object;
         }
-        throw wrongValueFormatException(key, "string", object, null);
+        System.out.println ( "raf: JSONObject.getString: key=" + key );
+        Thread.dumpStack();
+        return this.getStringEx( key );
+    }
+
+    /**
+     * Get the string associated with a key.
+     *
+     * @param key   A key string.  Handles java.math.Number objects
+     * @return      A string which is the value.
+     * @throws   JSONException if the key is not found.
+     */
+    @Deprecated
+    public String getStringEx(String key) throws JSONException {
+        Object object = this.get(key);
+        String result = ( object != null ) ? object.toString() : null;
+        return result;
     }
 
     /**
