@@ -608,50 +608,52 @@ public class JSONObject {
      *             "false".
      */
     public boolean getBoolean(String key) throws JSONException {
-        Object object = this.get(key);
-        if (object.equals(Boolean.FALSE)
-                || (object instanceof String && ((String) object)
-                .equalsIgnoreCase("false"))) {
+        Object o = get(key);
+
+        if (o.equals(Boolean.FALSE))
+        {
             return false;
-        } else if (object.equals(Boolean.TRUE)
-                || (object instanceof String && ((String) object)
-                .equalsIgnoreCase("true"))) {
+        }
+        else if (o.equals(Boolean.TRUE))
+        {
             return true;
         }
-        System.out.println ( "raf: JSONObject.getBoolean: key=" + key );
-        Thread.dumpStack();
-        // send teams message
-        return this.getBooleanEx( key );
-    }
-
-    /**
-     * Get the boolean value associated with a key.  Handles "0" and "1" values
-     *
-     * @param key   A key string.
-     * @return      The truth.
-     * @throws   JSONException
-     *  if the value is not a Boolean or the String "true" or "false".
-     */
-    @Deprecated
-    public boolean getBooleanEx(String key) throws JSONException {
-        boolean result;
-        Object o = get(key);
-        if ( o instanceof Boolean ) {
-            Boolean value = ( Boolean ) o;
-            result = value;
-        }
-        else if ( o instanceof String ) {
-            String value = ( String ) o;
-            if ( !( result = Boolean.parseBoolean( value ) ) )
-                result = !value.equals( "0" );
-        }
-        else if ( o instanceof Integer  ) {
-            Integer value = ( Integer ) o;
-            result = value != 0;
-        }
         else
-            throw new JSONException("JSONObject[" + quote(key) + "] is not a Boolean.");
-        return result;
+        {
+            if (o instanceof String)
+            {
+                String value = (String) o;
+
+                if (value.equalsIgnoreCase("false") || value.equals("0"))
+                {
+                    return false;
+                }
+                else if (value.equalsIgnoreCase("true") || value.equals("1"))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                try
+                {
+                    int value = getInt(key);
+
+                    if (value == 0)
+                    {
+                        return false;
+                    }
+                    else if (value == 1)
+                    {
+                        return true;
+                    }
+                }
+                catch (Throwable e) {}
+            }
+        }
+
+        throw new JSONException("JSONObject[" + quote(key) +
+                "] is not a Boolean.");
     }
 
     /**
@@ -886,28 +888,16 @@ public class JSONObject {
      * @throws JSONException
      *             if there is no string value for the key.
      */
-    public String getString(String key) throws JSONException {
-        Object object = this.get(key);
-        if (object instanceof String) {
-            return (String) object;
-        }
-        System.out.println ( "raf: JSONObject.getString: key=" + key );
-        Thread.dumpStack();
-        return this.getStringEx( key );
-    }
 
     /**
      * Get the string associated with a key.
      *
-     * @param key   A key string.  Handles java.math.Number objects
+     * @param key   A key string.
      * @return      A string which is the value.
      * @throws   JSONException if the key is not found.
      */
-    @Deprecated
-    public String getStringEx(String key) throws JSONException {
-        Object object = this.get(key);
-        String result = ( object != null ) ? object.toString() : null;
-        return result;
+    public String getString(String key) throws JSONException {
+        return get(key) != null ? get(key).toString() : null;
     }
 
     /**
@@ -1208,7 +1198,7 @@ public class JSONObject {
     static BigDecimal objectToBigDecimal(Object val, BigDecimal defaultValue) {
         return objectToBigDecimal(val, defaultValue, true);
     }
-    
+
     /**
      * @param val value to convert
      * @param defaultValue default value to return is the conversion doesn't work or is null.
@@ -1590,12 +1580,12 @@ public class JSONObject {
                         final Object result = method.invoke(bean);
                         if (result != null) {
                             // check cyclic dependency and throw error if needed
-                            // the wrap and populateMap combination method is 
+                            // the wrap and populateMap combination method is
                             // itself DFS recursive
                             if (objectsRecord.contains(result)) {
                                 throw recursivelyDefinedObjectException(key);
                             }
-                            
+
                             objectsRecord.add(result);
 
                             this.map.put(key, wrap(result, objectsRecord));
@@ -1604,7 +1594,7 @@ public class JSONObject {
 
                             // we don't use the result anywhere outside of wrap
                             // if it's a resource we should be sure to close it
-                            // after calling toString 
+                            // after calling toString
                             if (result instanceof Closeable) {
                                 try {
                                     ((Closeable) result).close();
