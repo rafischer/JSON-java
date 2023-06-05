@@ -493,11 +493,12 @@ public class JSONArray implements Iterable<Object> {
      *             If there is no string value for the index.
      */
     public String getString(int index) throws JSONException {
-        Object object = this.get(index);
-        if (object instanceof String) {
-            return (String) object;
-        }
-        throw wrongValueFormatException(index, "String", object, null);
+        return this.get(index).toString();
+//        Object object = this.get(index);
+//        if (object instanceof String) {
+//            return (String) object;
+//        }
+//        throw wrongValueFormatException(index, "String", object, null);
     }
 
     /**
